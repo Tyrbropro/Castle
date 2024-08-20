@@ -1,0 +1,26 @@
+name: Castle
+main: turbo.castle.Castle
+version: '${version}'
+api-version: '1.12.2'
+commands:
+  start:
+    description: tp start
+    usage: /<command>
+  wood:
+    description: wood info
+    usage: /<command>
+  stone:
+    description: stone info
+    usage: /<command>
+  wave:
+    description: start wave
+    usage: /<command>
+  test:
+    description: test command
+    usage: /<command>
+  woodPVP:
+    description: wave wood
+    usage: /<command>
+  stonePVP:
+    description: wave stone
+    usage: /<command>
