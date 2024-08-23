@@ -41,7 +41,11 @@ public class MiningStone {
         if (hits >= stoneSize) {
             removeStone(stone);
 
-            stoneRepository.addStone(stoneSize * 50);
+            stoneRepository.addStone((stoneSize * 50) * data.getMultiplierStone());
+            if(stoneRepository.getStone() >= data.getMaxStone()){
+                stoneRepository.setStone(data.getMaxStone());
+                player.sendMessage("У вас максимум камня");
+            }
             player.sendMessage("Вы разрушили камни!");
         } else {
             player.sendMessage(String.format("Вы ударили по камням %d раз(а). Всего блоков: %d", hits, stoneSize));

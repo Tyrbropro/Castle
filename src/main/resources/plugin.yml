@@ -3,8 +3,8 @@ main: turbo.castle.Castle
 version: '${version}'
 api-version: '1.12.2'
 commands:
-  start:
-    description: tp start
+  base:
+    description: tp base
     usage: /<command>
   wood:
     description: wood info
@@ -23,4 +23,13 @@ commands:
     usage: /<command>
   stonePVP:
     description: wave stone
+    usage: /<command>
+  townHallInfo:
+    description: townHall info
+    usage: /<command>
+  woodPVE:
+    description: farm wood
+    usage: /<command>
+  stonePVE:
+    description: farm stone
     usage: /<command>

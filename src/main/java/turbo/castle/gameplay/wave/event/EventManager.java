@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import turbo.castle.Castle;
 import turbo.castle.gameplay.wave.event.types.MeteorShowerEvent;
 import turbo.castle.gameplay.wave.event.types.WallEvent;
-import turbo.castle.gameplay.wave.mob.WaveManager;
+import turbo.castle.gameplay.wave.WaveManager;
 
 import java.util.*;
 
@@ -56,6 +56,7 @@ public class EventManager {
     private WaveEvent getRandomEvent(Player player) {
         List<WaveEvent> eventList = new ArrayList<>(events);
         if (eventList.isEmpty()) return null;
+
         WaveEvent event = eventList.get(random.nextInt(eventList.size()));
         event.setPlayer(player);
         return event;

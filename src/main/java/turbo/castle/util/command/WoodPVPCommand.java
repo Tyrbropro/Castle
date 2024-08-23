@@ -7,8 +7,8 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.springframework.stereotype.Component;
-import turbo.castle.gameplay.wave.mob.SpawnWave;
-import turbo.castle.gameplay.wave.mob.WaveManager;
+import turbo.castle.gameplay.wave.SpawnWave;
+import turbo.castle.gameplay.wave.WaveManager;
 import turbo.castle.register.SubCommand;
 import turbo.castle.util.MapService;
 

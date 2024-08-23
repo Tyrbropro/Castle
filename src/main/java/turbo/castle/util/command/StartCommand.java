@@ -17,10 +17,11 @@ public class StartCommand implements CommandExecutor {
     Location start = new Location(MapService.getWorld(), -77.5, 64, 420.5);
 
     @Override
-    @SubCommand("start")
+    @SubCommand("base")
     public boolean onCommand(CommandSender commandSender, org.bukkit.command.Command command, String s, String[] strings) {
-        if (command.getName().equalsIgnoreCase("start")) {
+        if (command.getName().equalsIgnoreCase("base")) {
             if (commandSender instanceof Player player) {
+                player.getInventory().clear();
                 player.teleport(start);
             }
             return true;

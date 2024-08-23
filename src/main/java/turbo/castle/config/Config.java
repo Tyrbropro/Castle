@@ -3,6 +3,8 @@ package turbo.castle.config;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import turbo.castle.gameplay.wave.SpawnWave;
+import turbo.castle.gameplay.wave.WaveManager;
 import turbo.castle.gameplay.wave.event.EventManager;
 import turbo.castle.gameplay.wave.mob.*;
 import turbo.castle.gameplay.wave.mob.types.SlowZombie;
@@ -130,6 +132,7 @@ public class Config {
     public StonePVPCommand stonePVPCommand() {
         return new StonePVPCommand(spawnWave(), waveManager());
     }
+
     @Bean
     public WoodPVPCommand woodPVPCommand() {
         return new WoodPVPCommand(spawnWave(), waveManager());
@@ -153,5 +156,15 @@ public class Config {
     @Bean
     public EntityEvents entityEvents() {
         return new EntityEvents(customMobFactory());
+    }
+
+    @Bean
+    public StonePVECommand stonePVECommand() {
+        return new StonePVECommand();
+    }
+
+    @Bean
+    public WoodPVECommand woodPVECommand() {
+        return new WoodPVECommand();
     }
 }

@@ -10,7 +10,7 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.springframework.stereotype.Component;
 import turbo.castle.gameplay.wave.mob.CustomMob;
-import turbo.castle.gameplay.wave.mob.WaveManager;
+import turbo.castle.gameplay.wave.WaveManager;
 
 @Component
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -18,9 +18,9 @@ public class CommonZombie extends CustomMob {
 
     public CommonZombie(WaveManager waveManager) {
         super(
-                waveManager.calculateHealth(20.0),
-                waveManager.calculateDamage(5.0),
-                waveManager.calculateSpeed(0.23),
+                waveManager.calculateHealth(10.0),
+                waveManager.calculateDamage(2.0),
+                waveManager.calculateSpeed(0.11),
                 "Zombie"
         );
     }
@@ -44,5 +44,7 @@ public class CommonZombie extends CustomMob {
     }
 
     @Override
-    public void handleHit(EntityDamageByEntityEvent event) {}
+    public void handleHit(EntityDamageByEntityEvent event) {
+
+    }
 }

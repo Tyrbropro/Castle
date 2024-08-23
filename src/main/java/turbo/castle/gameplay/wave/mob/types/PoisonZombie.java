@@ -11,7 +11,7 @@ import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.potion.PotionEffectType;
 import org.springframework.stereotype.Component;
 import turbo.castle.gameplay.wave.mob.CustomMob;
-import turbo.castle.gameplay.wave.mob.WaveManager;
+import turbo.castle.gameplay.wave.WaveManager;
 
 @Component
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -19,9 +19,9 @@ public class PoisonZombie extends CustomMob {
 
     public PoisonZombie(WaveManager waveManager) {
         super(
-                waveManager.calculateHealth(20.0),
-                waveManager.calculateDamage(5.0),
-                waveManager.calculateSpeed(0.23),
+                waveManager.calculateHealth(10.0),
+                waveManager.calculateDamage(2.0),
+                waveManager.calculateSpeed(0.11),
                 "PoisonZombie",
                 PotionEffectType.POISON,
                 100,

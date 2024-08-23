@@ -47,7 +47,11 @@ public class TreeFelling {
             removeTree(tree, block);
             treeConfig.getTreeHits().remove(tree);
 
-            woodRepository.addWood(treeSize * 50);
+            woodRepository.addWood((treeSize * 50) * data.getMultiplierWood());
+            if(woodRepository.getWood() >= data.getMaxWood()){
+                woodRepository.setWood(data.getMaxWood());
+                player.sendMessage("У вас максимум дерева");
+            }
             player.sendMessage("Вы разрушили дерево!");
         } else {
             player.sendMessage("Вы ударили по дереву " + hits + " раз(а). Всего блоков: " + treeSize);

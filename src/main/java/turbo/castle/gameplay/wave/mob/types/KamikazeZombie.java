@@ -11,15 +11,15 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import turbo.castle.Castle;
 import turbo.castle.gameplay.wave.mob.CustomMob;
-import turbo.castle.gameplay.wave.mob.WaveManager;
+import turbo.castle.gameplay.wave.WaveManager;
 
 public class KamikazeZombie extends CustomMob {
 
     public KamikazeZombie(WaveManager waveManager) {
         super(
-                waveManager.calculateHealth(10.0),
-                waveManager.calculateDamage(1.0),
-                waveManager.calculateSpeed(0.35),
+                waveManager.calculateHealth(5.0),
+                waveManager.calculateDamage(0.5),
+                waveManager.calculateSpeed(0.20),
                 "Kamikaze Zombie"
         );
     }
@@ -67,6 +67,7 @@ public class KamikazeZombie extends CustomMob {
     }
 
     private void explode(Location location) {
-        location.getWorld().createExplosion(location.getX(), location.getY(), location.getZ(), (float) getDamage(), false, false);
+        location.getWorld().createExplosion(location.getX(), location.getY(), location.getZ(),
+                (float) getDamage(), false, false);
     }
 }

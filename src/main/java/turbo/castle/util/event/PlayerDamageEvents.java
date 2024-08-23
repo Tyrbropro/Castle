@@ -2,6 +2,7 @@ package turbo.castle.util.event;
 
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
+import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -11,7 +12,8 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.springframework.stereotype.Component;
 import turbo.castle.currency.wood.repository.WoodRepositoryImpl;
 import turbo.castle.data.PlayerData;
-import turbo.castle.gameplay.wave.mob.SpawnWave;
+import turbo.castle.gameplay.wave.SpawnWave;
+import turbo.castle.util.MapService;
 
 import java.util.UUID;
 
@@ -42,7 +44,9 @@ public class PlayerDamageEvents implements Listener {
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
         Player player = event.getEntity();
+        player.getInventory().clear();
         spawnWave.endGame();
+        player.teleport(new Location(MapService.getWorld(), -77.5, 64, 420.5));
         player.sendMessage("Конец игры! Вы погибли.");
     }
 }

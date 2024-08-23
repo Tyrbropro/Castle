@@ -20,6 +20,7 @@ import java.util.Random;
 @Component
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class SpawnStone {
+
     StoneConfig stoneConfig;
     BlockUtil blockUtil;
     Random random = new Random();

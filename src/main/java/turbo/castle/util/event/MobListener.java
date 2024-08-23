@@ -7,7 +7,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityCombustEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.springframework.stereotype.Component;
-import turbo.castle.gameplay.wave.mob.SpawnWave;
+import turbo.castle.gameplay.wave.SpawnWave;
 
 @Component
 public class MobListener implements Listener {

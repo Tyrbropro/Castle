@@ -1,4 +1,4 @@
-package turbo.castle.gameplay.wave.mob;
+package turbo.castle.gameplay.wave;
 
 import org.springframework.stereotype.Component;
 
@@ -38,14 +38,15 @@ public class WaveManager {
     }
 
     public double calculateHealth(double baseHealth) {
-        return baseHealth + (currentWave * 5);
+        return baseHealth * ((currentWave * 0.2) + 1);
     }
 
     public double calculateDamage(double baseDamage) {
-        return baseDamage + (currentWave * 1.5);
+        return baseDamage * ((currentWave * 0.2) + 1);
     }
 
+
     public double calculateSpeed(double baseSpeed) {
-        return baseSpeed + (currentWave * 0.02);
+        return baseSpeed * ((currentWave * 0.1) + 1);
     }
 }
