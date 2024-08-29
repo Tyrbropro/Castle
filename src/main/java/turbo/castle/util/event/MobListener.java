@@ -1,18 +1,19 @@
 package turbo.castle.util.event;
 
-
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityCombustEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import turbo.castle.gameplay.wave.SpawnWave;
 
 @Component
 public class MobListener implements Listener {
-    SpawnWave spawnWave;
+    final SpawnWave spawnWave;
 
+    @Autowired
     public MobListener(SpawnWave spawnWave) {
         this.spawnWave = spawnWave;
     }
@@ -26,9 +27,8 @@ public class MobListener implements Listener {
 
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event) {
-        if (event.getEntity() != null) {
-            event.getDrops().clear();
-        }
+        event.getDrops().clear();
+
         if (spawnWave.getCustomMobFactory().getCustomMobs().containsKey(event.getEntity())) {
             spawnWave.onMobDeath();
         }

@@ -9,6 +9,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import turbo.castle.gameplay.wave.mob.CustomMob;
 import turbo.castle.gameplay.wave.mob.CustomMobFactory;
@@ -18,6 +19,7 @@ import turbo.castle.gameplay.wave.mob.CustomMobFactory;
 public class EntityEvents implements Listener {
     CustomMobFactory customMobFactory;
 
+    @Autowired
     public EntityEvents(CustomMobFactory customMobFactory) {
         this.customMobFactory = customMobFactory;
     }
@@ -29,20 +31,16 @@ public class EntityEvents implements Listener {
 
     @EventHandler
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
-        if (event.getEntity() instanceof LivingEntity && !(event.getEntity() instanceof Player)) {
-            if (!(event.getDamager() instanceof Player)) {
-                event.setCancelled(true);
-            }
+        if (event.getEntity() instanceof LivingEntity && !(event.getEntity() instanceof Player) && !(event.getDamager() instanceof Player)) {
+            event.setCancelled(true);
         }
     }
 
     @EventHandler
     public void onEntityTarget(EntityTargetEvent event) {
-        if (event.getEntity() instanceof LivingEntity entity) {
-            CustomMob customMob = customMobFactory.getCustomMob(entity);
-            if (customMob != null) {
-                customMob.onTarget(event);
-            }
+        CustomMob customMob = customMobFactory.getCustomMob(event.getEntity());
+        if (customMob != null) {
+            customMob.onTarget(event);
         }
     }
 }

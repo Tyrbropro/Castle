@@ -10,6 +10,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import turbo.castle.config.VillageLevelConfig;
 import turbo.castle.data.PlayerData;
 import turbo.castle.gameplay.stone.SpawnStone;
 import turbo.castle.gameplay.tree.TreeGrowth;
@@ -23,6 +24,7 @@ import java.util.UUID;
 public class PlayerJoinQuitEvents implements Listener {
     TreeGrowth treeGrowth;
     SpawnStone spawnStone;
+
 
     @Autowired
     public PlayerJoinQuitEvents(TreeGrowth treeGrowth, SpawnStone spawnStone) {
@@ -49,6 +51,15 @@ public class PlayerJoinQuitEvents implements Listener {
     public void joinPlayer(PlayerJoinEvent event) {
         treeGrowth.grow();
         spawnStone.spawn();
+
+        Player player = event.getPlayer();
+        PlayerData data = PlayerData.getUsers().get(player.getUniqueId());
+        VillageLevelConfig villageLevelConfig = data.getVillageLevelConfig();
+
+        player.setExp(0f);
+        player.setLevel(0);
+
+        player.giveExp(villageLevelConfig.getXp());
     }
 
     @EventHandler

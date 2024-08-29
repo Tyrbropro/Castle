@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
+import org.bson.Document;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -16,6 +17,7 @@ import turbo.castle.currency.stone.repository.StoneRepositoryImpl;
 import turbo.castle.currency.wood.repository.WoodRepositoryImpl;
 import turbo.castle.data.PlayerData;
 import turbo.castle.gameplay.village.AbstractBuilding;
+import turbo.castle.gameplay.village.SavableBuilding;
 import turbo.castle.util.MapService;
 
 import java.util.*;
@@ -24,8 +26,9 @@ import java.util.*;
 @Component
 @Setter
 @Getter
-public class BlackSmith extends AbstractBuilding {
+public class BlackSmith extends AbstractBuilding implements SavableBuilding {
 
+    final Location loc = new Location(MapService.getWorld(), -62, 63, 437);
     Map<String, Integer> upgradeLevels = new HashMap<>();
     Map<String, ItemStack> upgradedItems = new HashMap<>();
 
@@ -33,7 +36,8 @@ public class BlackSmith extends AbstractBuilding {
         super("Blacksmith",
                 new Location(MapService.getWorld(), -74, 64, 442),
                 1000,
-                1000);
+                1000,
+                100);
 
         upgradeLevels.put("sword", 0);
         upgradeLevels.put("pickaxe", 0);
@@ -44,25 +48,30 @@ public class BlackSmith extends AbstractBuilding {
         upgradedItems.put("pickaxe", new ItemStack(Material.WOOD_PICKAXE));
         upgradedItems.put("axe", new ItemStack(Material.WOOD_AXE));
         upgradedItems.put("armor", null);
-
     }
 
     @Override
     public void onInteract(Player player) {
-        setPriceStone(500);
-        setPriceWood(500);
-        for (int i = 0; i < getLevel(); i++) {
-            setPriceStone((int) (getPriceStone() * 1.8));
-            setPriceWood((int) (getPriceWood() * 1.8));
+        if (!isClearArea) {
+            openClearAreaConfirmation(player);
+            spawnObstacles(loc);
+        } else {
+            removeObstacles(loc);
+            setPriceStone(500);
+            setPriceWood(500);
+            for (int i = 0; i < getLevel(); i++) {
+                setPriceStone((int) (getPriceStone() * 1.8));
+                setPriceWood((int) (getPriceWood() * 1.8));
+            }
+            switch (getLevel()) {
+                case 0 -> infoNextLvl = "инструменты до камня";
+                case 1 -> infoNextLvl = "инструменты до железа";
+                case 2 -> infoNextLvl = "инструменты до алмаза";
+                default -> infoNextLvl = "не придумал";
+            }
+            setInfoNextLvl(infoNextLvl);
+            openInventory(player);
         }
-        switch (getLevel()) {
-            case 0 -> infoNextLvl = "инструменты до камня";
-            case 1 -> infoNextLvl = "инструменты до железа";
-            case 2 -> infoNextLvl = "инструменты до алмаза";
-            default -> infoNextLvl = "не придумал";
-        }
-        setInfoNextLvl(infoNextLvl);
-        openInventory(player);
     }
 
     @Override
@@ -72,7 +81,7 @@ public class BlackSmith extends AbstractBuilding {
         ItemStack infoItem = new ItemStack(Material.PAPER);
         ItemMeta infoMeta = infoItem.getItemMeta();
         infoMeta.setDisplayName("Информация");
-        infoMeta.setLore(Collections.singletonList(info()));
+        infoMeta.setLore(info());
         infoItem.setItemMeta(infoMeta);
         blacksmithInventory.setItem(0, infoItem);
 
@@ -198,6 +207,24 @@ public class BlackSmith extends AbstractBuilding {
         }
     }
 
+    public void openClearAreaConfirmation(Player player) {
+        Inventory confirmInventory = Bukkit.createInventory(null, 9, "Подтвердить расчистку территории под кузницу");
+
+        ItemStack confirmItem = new ItemStack(Material.EMERALD_BLOCK);
+        ItemMeta confirmMeta = confirmItem.getItemMeta();
+        confirmMeta.setDisplayName("Подтвердить расчистку за " + clearAreaPrice + " монет");
+        confirmItem.setItemMeta(confirmMeta);
+        confirmInventory.setItem(3, confirmItem);
+
+        ItemStack cancelItem = new ItemStack(Material.REDSTONE_BLOCK);
+        ItemMeta cancelMeta = cancelItem.getItemMeta();
+        cancelMeta.setDisplayName("Отмена");
+        cancelItem.setItemMeta(cancelMeta);
+        confirmInventory.setItem(5, cancelItem);
+
+        player.openInventory(confirmInventory);
+    }
+
 
     public ItemStack getSword() {
         return upgradedItems.get("sword");
@@ -227,12 +254,19 @@ public class BlackSmith extends AbstractBuilding {
         return upgradedItems.get("boots");
     }
 
-    public ItemStack[] getArmorSet() {
-        return new ItemStack[]{
-                getHelmet(),
-                getChestplate(),
-                getLeggings(),
-                getBoots()
-        };
+
+    @Override
+    public Document saveData() {
+        return new Document("isClearArea", isClearArea)
+                .append("level", getLevel());
+    }
+
+    @Override
+    public void loadData(Document document) {
+        setClearArea(document.getBoolean("isClearArea"));
+        setLevel(document.getInteger("level"));
+
+        if (!isClearArea) spawnObstacles(loc);
+        else removeObstacles(loc);
     }
 }

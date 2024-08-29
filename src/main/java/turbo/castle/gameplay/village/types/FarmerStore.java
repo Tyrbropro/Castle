@@ -1,5 +1,6 @@
 package turbo.castle.gameplay.village.types;
 
+import org.bson.Document;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -11,37 +12,64 @@ import turbo.castle.currency.stone.repository.StoneRepositoryImpl;
 import turbo.castle.currency.wood.repository.WoodRepositoryImpl;
 import turbo.castle.data.PlayerData;
 import turbo.castle.gameplay.village.AbstractBuilding;
+import turbo.castle.gameplay.village.SavableBuilding;
 import turbo.castle.util.MapService;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class FarmerStore extends AbstractBuilding {
+public class FarmerStore extends AbstractBuilding implements SavableBuilding {
 
+    final Location loc = new Location(MapService.getWorld(), -84, 63, 437);
 
     public FarmerStore() {
         super("FarmerStore",
                 new Location(MapService.getWorld(), -82, 64, 442),
                 1500,
-                1500);
+                1500,
+                100);
     }
 
     @Override
     public void onInteract(Player player) {
-        setPriceStone(1500);
-        setPriceWood(1500);
-        for (int i = 0; i < getLevel(); i++) {
-            setPriceStone((int) (getPriceStone() * 1.8));
-            setPriceWood((int) (getPriceWood() * 1.8));
-        }
-        if (getLevel() == 0) {
-            infoNextLvl = "Открывается магазин с едой";
+        if (!isClearArea) {
+            openClearAreaConfirmation(player);
+            spawnObstacles(loc);
         } else {
-            infoNextLvl = "Больше выбора еды";
+            removeObstacles(loc);
+            setPriceStone(1500);
+            setPriceWood(1500);
+            for (int i = 0; i < getLevel(); i++) {
+                setPriceStone((int) (getPriceStone() * 1.8));
+                setPriceWood((int) (getPriceWood() * 1.8));
+            }
+            if (getLevel() == 0) {
+                infoNextLvl = "Открывается магазин с едой";
+            } else {
+                infoNextLvl = "Больше выбора еды";
+            }
+            setInfoNextLvl(infoNextLvl);
+            openInventory(player);
         }
-        setInfoNextLvl(infoNextLvl);
-        openInventory(player);
+    }
+
+    public void openClearAreaConfirmation(Player player) {
+        Inventory confirmInventory = Bukkit.createInventory(null, 9, "Подтвердить расчистку территории под Фермерский магазин");
+
+        ItemStack confirmItem = new ItemStack(Material.EMERALD_BLOCK);
+        ItemMeta confirmMeta = confirmItem.getItemMeta();
+        confirmMeta.setDisplayName("Подтвердить расчистку за " + clearAreaPrice + " монет");
+        confirmItem.setItemMeta(confirmMeta);
+        confirmInventory.setItem(3, confirmItem);
+
+        ItemStack cancelItem = new ItemStack(Material.REDSTONE_BLOCK);
+        ItemMeta cancelMeta = cancelItem.getItemMeta();
+        cancelMeta.setDisplayName("Отмена");
+        cancelItem.setItemMeta(cancelMeta);
+        confirmInventory.setItem(5, cancelItem);
+
+        player.openInventory(confirmInventory);
     }
 
     @Override
@@ -51,7 +79,7 @@ public class FarmerStore extends AbstractBuilding {
         ItemStack infoItem = new ItemStack(Material.PAPER);
         ItemMeta infoMeta = infoItem.getItemMeta();
         infoMeta.setDisplayName("Информация");
-        infoMeta.setLore(Collections.singletonList(info()));
+        infoMeta.setLore(info());
         infoItem.setItemMeta(infoMeta);
         storageInventory.setItem(0, infoItem);
 
@@ -144,5 +172,20 @@ public class FarmerStore extends AbstractBuilding {
         } else {
             player.sendMessage("У вас недостаточно ресурсов для покупки.");
         }
+    }
+
+    @Override
+    public Document saveData() {
+        return new Document("isClearArea", isClearArea)
+                .append("level", getLevel());
+    }
+
+    @Override
+    public void loadData(Document document) {
+        setClearArea(document.getBoolean("isClearArea"));
+        setLevel(document.getInteger("level"));
+
+        if (!isClearArea) spawnObstacles(loc);
+        else removeObstacles(loc);
     }
 }

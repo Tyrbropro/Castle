@@ -6,6 +6,7 @@ import lombok.experimental.FieldDefaults;
 import org.bson.Document;
 import turbo.castle.gameplay.village.Building;
 import turbo.castle.gameplay.village.BuildingManager;
+import turbo.castle.gameplay.village.SavableBuilding;
 import turbo.castle.gameplay.village.types.*;
 
 import java.util.ArrayList;
@@ -28,8 +29,12 @@ public class VillageConfig {
         List<Building> buildingList = buildings.get(uuid);
         if (buildingList != null) {
             for (Building building : buildingList) {
-                Document doc = new Document("name", building.getClass().getSimpleName())
-                        .append("level", building.getLevel());
+                Document doc = new Document("name", building.getClass().getSimpleName());
+                if (building instanceof SavableBuilding) {
+                    doc.putAll(((SavableBuilding) building).saveData());
+                } else {
+                    doc.append("level", building.getLevel());
+                }
                 documents.add(doc);
             }
         }
@@ -40,11 +45,14 @@ public class VillageConfig {
         List<Building> buildingList = new ArrayList<>();
         for (Document doc : documents) {
             String buildingName = doc.getString("name");
-            int level = doc.getInteger("level");
 
             Building building = createBuildingFromName(buildingName, uuid);
             if (building != null) {
-                building.setLevel(level);
+                if (building instanceof SavableBuilding) {
+                    ((SavableBuilding) building).loadData(doc);
+                } else {
+                    building.setLevel(doc.getInteger("level"));
+                }
                 buildingList.add(building);
             }
         }

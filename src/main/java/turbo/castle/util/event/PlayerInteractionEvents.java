@@ -24,7 +24,9 @@ import turbo.castle.gameplay.tree.TreeFelling;
 import turbo.castle.gameplay.village.Building;
 import turbo.castle.gameplay.village.BuildingManager;
 import turbo.castle.gameplay.village.types.AlchemyStore;
+import turbo.castle.gameplay.village.types.BlackSmith;
 import turbo.castle.gameplay.village.types.FarmerStore;
+import turbo.castle.gameplay.village.types.Storage;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,7 +39,6 @@ public class PlayerInteractionEvents implements Listener {
     TreeFelling treeFelling;
     MiningStone miningStone;
     Map<Player, Long> cooldown = new HashMap<>();
-
 
     @Autowired
     public PlayerInteractionEvents(TreeFelling treeFelling, MiningStone miningStone) {
@@ -52,45 +53,43 @@ public class PlayerInteractionEvents implements Listener {
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
-        Block block = event.getClickedBlock();
         Player player = event.getPlayer();
-        UUID uuid = player.getUniqueId();
         ItemStack item = player.getInventory().getItemInMainHand();
+        Block block = event.getClickedBlock();
 
+        if (isCooldownActive(player)) return;
 
-        long currentTime = System.currentTimeMillis();
-        if (cooldown.containsKey(player)) {
-            long lastUse = cooldown.get(player);
-
-            long cooldownTime = 1000;
-            if (currentTime - lastUse < cooldownTime) return;
-        }
         healFeed(event, player, item);
+
         if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
             mining(player, block);
-            cooldown.put(player, currentTime);
         } else if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
-            BuildingManager buildingManager = new BuildingManager(uuid);
+            BuildingManager buildingManager = new BuildingManager(player.getUniqueId());
             buildingManager.interactWithBuilding(player, block.getLocation());
-            cooldown.put(player, currentTime);
         }
+
+        updateCooldown(player);
+    }
+
+    private boolean isCooldownActive(Player player) {
+        long currentTime = System.currentTimeMillis();
+        return cooldown.containsKey(player) && currentTime - cooldown.get(player) < 1000;
+    }
+
+    private void updateCooldown(Player player) {
+        cooldown.put(player, System.currentTimeMillis());
     }
 
     private void healFeed(PlayerInteractEvent event, Player player, ItemStack item) {
-        if (item != null && item.hasItemMeta()) {
-            ItemMeta meta = item.getItemMeta();
-            if (meta.hasLore()) {
-                for (String lore : meta.getLore()) {
-                    if (lore.startsWith("Восстанавливает: ")) {
-                        int healing = Integer.parseInt(lore.split(" ")[1]);
-
-                        double newHealth = Math.min(player.getHealth() + healing, player.getMaxHealth());
-                        player.setHealth(newHealth);
-                        player.sendMessage("Вы восстановили " + healing + " HP.");
-                        item.setAmount(item.getAmount() - 1);
-                        event.setCancelled(true);
-                        break;
-                    }
+        if (item != null && item.hasItemMeta() && item.getItemMeta().hasLore()) {
+            for (String lore : item.getItemMeta().getLore()) {
+                if (lore.startsWith("Восстанавливает: ")) {
+                    int healing = Integer.parseInt(lore.split(" ")[1]);
+                    player.setHealth(Math.min(player.getHealth() + healing, player.getMaxHealth()));
+                    player.sendMessage("Вы восстановили " + healing + " HP.");
+                    item.setAmount(item.getAmount() - 1);
+                    event.setCancelled(true);
+                    break;
                 }
             }
         }
@@ -102,59 +101,69 @@ public class PlayerInteractionEvents implements Listener {
         Player player = (Player) event.getWhoClicked();
         UUID uuid = player.getUniqueId();
         BuildingManager buildingManager = new BuildingManager(uuid);
-        if (inventory.getName().equals("Town Hall")) {
-            Building building = buildingManager.getBuildingByName("Town Hall");
-            int slot = event.getRawSlot();
-            building.interactInventory(player, slot);
-        } else if (inventory.getName().equals("Blacksmith")) {
-            Building building = buildingManager.getBuildingByName("Blacksmith");
-            int slot = event.getRawSlot();
-            building.interactInventory(player, slot);
-        } else if (inventory.getName().equals("Storage")) {
-            Building building = buildingManager.getBuildingByName("Storage");
-            int slot = event.getRawSlot();
-            building.interactInventory(player, slot);
-        } else if (inventory.getName().equals("FarmerStore")) {
-            Building building = buildingManager.getBuildingByName("FarmerStore");
-            int slot = event.getRawSlot();
-            building.interactInventory(player, slot);
-        } else if (inventory.getName().equals("FarmerShop")) {
-            FarmerStore building = (FarmerStore) buildingManager.getBuildingByName("FarmerStore");
-            int slot = event.getRawSlot();
-            building.interactShop(player, slot);
-        }else if (inventory.getName().equals("AlchemyStore")) {
-            Building building = buildingManager.getBuildingByName("AlchemyStore");
-            int slot = event.getRawSlot();
-            building.interactInventory(player, slot);
-        } else if (inventory.getName().equals("AlchemyShop")) {
-            AlchemyStore building = (AlchemyStore) buildingManager.getBuildingByName("AlchemyStore");
-            int slot = event.getRawSlot();
-            building.interactShop(player, slot);
-        }
-        event.setCancelled(true);
-    }
 
+        String inventoryName = inventory.getName();
+        Building building = buildingManager.getBuildingByName(inventoryName);
+        int slot = event.getRawSlot();
+        if (building != null) {
+            if (inventoryName.equals("FarmerShop")) {
+                ((FarmerStore) building).interactShop(player, slot);
+            } else if (inventoryName.equals("AlchemyShop")) {
+                ((AlchemyStore) building).interactShop(player, slot);
+            } else {
+                building.interactInventory(player, slot);
+            }
+            event.setCancelled(true);
+        } else if (inventory.getName().equals("FarmerShop")) {
+            FarmerStore farmerStore = (FarmerStore) buildingManager.getBuildingByName("FarmerStore");
+            farmerStore.interactShop(player, slot);
+            event.setCancelled(true);
+        } else if (inventory.getName().equals("AlchemyShop")) {
+            AlchemyStore alchemyStore = (AlchemyStore) buildingManager.getBuildingByName("AlchemyStore");
+            alchemyStore.interactShop(player, slot);
+            event.setCancelled(true);
+        } else if (inventory.getName().equals("Подтвердить расчистку территории под Алхимический Магазин")) {
+            AlchemyStore alchemyStore = (AlchemyStore) buildingManager.getBuildingByName("AlchemyStore");
+            alchemyStore.interactClearArea(player, slot);
+            event.setCancelled(true);
+        } else if (inventory.getName().equals("Подтвердить расчистку территории под кузницу")) {
+            BlackSmith blackSmith = (BlackSmith) buildingManager.getBuildingByName("Blacksmith");
+            blackSmith.interactClearArea(player, slot);
+            event.setCancelled(true);
+        } else if (inventory.getName().equals("Подтвердить расчистку территории под Фермерский магазин")) {
+            FarmerStore farmerStore = (FarmerStore) buildingManager.getBuildingByName("FarmerStore");
+            farmerStore.interactClearArea(player, slot);
+            event.setCancelled(true);
+        } else if (inventory.getName().equals("Подтвердить расчистку территории под склад")) {
+            Storage storage = (Storage) buildingManager.getBuildingByName("Storage");
+            storage.interactClearArea(player, slot);
+            event.setCancelled(true);
+        }
+    }
 
     @EventHandler
     public void onFoodLevelChange(FoodLevelChangeEvent event) {
         if (event.getEntity() instanceof Player player) {
-
             player.setFoodLevel(20);
             player.setSaturation(20.0f);
-
             event.setCancelled(true);
         }
     }
 
     private void mining(Player player, Block block) {
-        if (block != null && block.getType() == Material.COBBLESTONE) {
-            miningStone.mining(player, block);
-            player.playSound(player.getLocation(), Sound.BLOCK_STONE_BREAK, 5.0f, 1.0f);
-            player.spawnParticle(Particle.CRIT, block.getLocation().add(0.5, 0.5, 0.5), 20);
-        } else if (block != null && block.getType() == Material.LOG) {
-            treeFelling.felling(player, block);
-            player.playSound(player.getLocation(), Sound.BLOCK_WOOD_BREAK, 5.0f, 1.0f);
-            player.spawnParticle(Particle.CRIT, block.getLocation().add(0.5, 0.5, 0.5), 20);
+        if (block != null) {
+            if (block.getType() == Material.COBBLESTONE) {
+                miningStone.mining(player, block);
+                playMiningEffects(player, block, Sound.BLOCK_STONE_BREAK);
+            } else if (block.getType() == Material.LOG) {
+                treeFelling.felling(player, block);
+                playMiningEffects(player, block, Sound.BLOCK_WOOD_BREAK);
+            }
         }
+    }
+
+    private void playMiningEffects(Player player, Block block, Sound sound) {
+        player.getWorld().playSound(block.getLocation(), sound, 1.0f, 1.0f);
+        player.getWorld().spawnParticle(Particle.BLOCK_CRACK, block.getLocation(), 10);
     }
 }

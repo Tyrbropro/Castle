@@ -2,13 +2,22 @@ package turbo.castle.gameplay.village;
 
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import turbo.castle.currency.money.repository.MoneyRepositoryImpl;
 import turbo.castle.currency.stone.repository.StoneRepositoryImpl;
 import turbo.castle.currency.wood.repository.WoodRepositoryImpl;
 import turbo.castle.data.PlayerData;
+import turbo.castle.util.BlockUtil;
+import turbo.castle.util.MapService;
+
+import java.util.Arrays;
+import java.util.List;
 
 @FieldDefaults(level = AccessLevel.PROTECTED)
 public abstract class AbstractBuilding implements Building {
@@ -19,30 +28,27 @@ public abstract class AbstractBuilding implements Building {
     int level;
     int priceStone;
     int priceWood;
+    int clearAreaPrice;
+    boolean isClearArea;
 
-    public AbstractBuilding(String name, Location location, int priceStone, int priceWood) {
+    public AbstractBuilding(String name, Location location, int priceStone, int priceWood, int clearAreaPrice) {
         this.name = name;
         this.location = location;
         this.level = 0;
+        this.clearAreaPrice = clearAreaPrice;
+        this.isClearArea = false;
         this.priceStone = priceStone;
         this.priceWood = priceWood;
     }
 
     @Override
-    public String info() {
-        return String.format(
-                """
-                        Информация о %s:
-                        Уровень: %d
-                        Цена улучшения (камень): %d
-                        Цена улучшения (дерево): %d
-                        На следущей уровне будет доступно:\s
-                        %s""",
-
-                name,
-                level,
-                priceStone,
-                priceWood,
+    public List<String> info() {
+        return Arrays.asList(
+                String.format("Информация о %s:", name),
+                String.format("Уровень: %d", level),
+                String.format("Цена улучшения (камень): %d", priceStone),
+                String.format("Цена улучшения (дерево): %d", priceWood),
+                "На следующем уровне будет доступно:",
                 infoNextLvl
         );
     }
@@ -51,9 +57,30 @@ public abstract class AbstractBuilding implements Building {
     public String getInfoNextLvl() {
         return infoNextLvl;
     }
-    @Override
-    public void openInventory(Player player){
 
+    @Override
+    public void openInventory(Player player) {
+
+    }
+
+    @Override
+    public boolean isClearArea() {
+        return isClearArea;
+    }
+
+    @Override
+    public void setClearArea(boolean clearArea) {
+        isClearArea = clearArea;
+    }
+
+    @Override
+    public void setClearAreaPrice(int clearAreaPrice) {
+        this.clearAreaPrice = clearAreaPrice;
+    }
+
+    @Override
+    public int getClearAreaPrice() {
+        return clearAreaPrice;
     }
 
     @Override
@@ -100,8 +127,9 @@ public abstract class AbstractBuilding implements Building {
     public void setPriceWood(int priceWood) {
         this.priceWood = priceWood;
     }
+
     @Override
-    public void interactInventory(Player player, int slot){
+    public void interactInventory(Player player, int slot) {
 
     }
 
@@ -120,5 +148,43 @@ public abstract class AbstractBuilding implements Building {
     }
 
     @Override
+    public void interactClearArea(Player player, int slot) {
+        PlayerData data = PlayerData.getUsers().get(player.getUniqueId());
+        MoneyRepositoryImpl moneyRepository = data.getMoneyRepository();
+        switch (slot) {
+            case 3 -> {
+                if (moneyRepository.getMoney() >= clearAreaPrice) {
+                    moneyRepository.delMoney(clearAreaPrice);
+                    setClearArea(true);
+                    player.sendMessage("Вы успешно расчистили территорию.");
+                    onInteract(player);
+                } else {
+                    player.sendMessage("У вас недостаточно монет для расчистки территории.");
+                }
+            }
+            case 5 -> {
+                player.sendMessage("Вы отменили расчистку территории.");
+                openInventory(player);
+            }
+            default -> {
+            }
+        }
+    }
+
+    @Override
     public abstract void onInteract(Player player);
+
+    @Override
+    public void spawnObstacles(Location target) {
+        Location sourceMin = new Location(MapService.getWorld(), -66, 63, 483);
+        Location sourceMax = new Location(MapService.getWorld(), -76, 68, 493);
+        new BlockUtil().copyPaste(sourceMin, sourceMax, target);
+    }
+
+    @Override
+    public void removeObstacles(Location target) {
+        Location sourceMin = new Location(MapService.getWorld(), -78, 63, 483);
+        Location sourceMax = new Location(MapService.getWorld(), -88, 68, 493);
+        new BlockUtil().copyPaste(sourceMin, sourceMax, target);
+    }
 }

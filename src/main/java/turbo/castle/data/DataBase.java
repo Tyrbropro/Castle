@@ -9,6 +9,8 @@ import org.bson.Document;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import turbo.castle.config.VillageConfig;
+import turbo.castle.config.VillageLevelConfig;
+import turbo.castle.currency.money.repository.MoneyRepositoryImpl;
 import turbo.castle.currency.stone.repository.StoneRepositoryImpl;
 import turbo.castle.currency.wood.repository.WoodRepositoryImpl;
 import turbo.castle.gameplay.village.BuildingManager;
@@ -16,10 +18,7 @@ import turbo.castle.gameplay.village.BuildingManager;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class DataBase {
 
@@ -54,17 +53,33 @@ public class DataBase {
                 upgradedItemsDoc.append(entry.getKey(), itemStackToDocument(entry.getValue()));
             }
 
+            List<Document> purchasedFoodDocs = new ArrayList<>();
+            for (ItemStack item : playerData.getPurchasedFood()) {
+                purchasedFoodDocs.add(itemStackToDocument(item));
+            }
+
+            List<Document> purchasedPotionsDocs = new ArrayList<>();
+            for (ItemStack item : playerData.getPurchasedPotions()) {
+                purchasedPotionsDocs.add(itemStackToDocument(item));
+            }
+
             Document doc = new Document("uuid", playerData.getUuid().toString())
+                    .append("xp", playerData.getVillageLevelConfig().getXp())
                     .append("wood", playerData.getWoodRepository().getWood())
                     .append("stone", playerData.getStoneRepository().getStone())
+                    .append("money", playerData.getMoneyRepository().getMoney())
+                    .append("xp", playerData.getVillageLevelConfig().getXp())
                     .append("buildings", VillageConfig.toDocumentList(playerData.getUuid()))
                     .append("upgradeLevels", upgradeLevelsDoc)
-                    .append("upgradedItems", upgradedItemsDoc);
+                    .append("upgradedItems", upgradedItemsDoc)
+                    .append("purchasedFood", purchasedFoodDocs)
+                    .append("purchasedPotions", purchasedPotionsDocs);
 
             Document query = new Document("uuid", playerData.getUuid().toString());
             collection.replaceOne(query, doc, new ReplaceOptions().upsert(true));
         }
     }
+
     private static Document itemStackToDocument(ItemStack itemStack) {
         if (itemStack == null) return null;
         Document doc = new Document();
@@ -85,9 +100,13 @@ public class DataBase {
             if (result != null) {
                 WoodRepositoryImpl woodRepo = new WoodRepositoryImpl();
                 StoneRepositoryImpl stoneRepo = new StoneRepositoryImpl();
+                MoneyRepositoryImpl moneyRepo = new MoneyRepositoryImpl();
+                VillageLevelConfig villageLevelConfig = new VillageLevelConfig();
 
                 woodRepo.setWood(result.getInteger("wood"));
                 stoneRepo.setStone(result.getInteger("stone"));
+                moneyRepo.setMoney(result.getInteger("money"));
+                villageLevelConfig.setXp(result.getInteger("xp"));
 
                 List<Document> buildingDocs = (List<Document>) result.get("buildings");
                 VillageConfig.loadFromDocumentList(uuid, buildingDocs);
@@ -104,7 +123,23 @@ public class DataBase {
                     upgradedItems.put(key, documentToItemStack((Document) upgradedItemsDoc.get(key)));
                 }
 
-                return new PlayerData(uuid, woodRepo, stoneRepo, new BuildingManager(uuid), upgradeLevels, upgradedItems);
+                List<Document> purchasedFoodDocs = (List<Document>) result.get("purchasedFood");
+                List<ItemStack> purchasedFood = new ArrayList<>();
+                for (Document foodDoc : purchasedFoodDocs) {
+                    purchasedFood.add(documentToItemStack(foodDoc));
+                }
+
+                List<Document> purchasedPotionsDocs = (List<Document>) result.get("purchasedPotions");
+                List<ItemStack> purchasedPotions = new ArrayList<>();
+                for (Document potionDoc : purchasedPotionsDocs) {
+                    purchasedPotions.add(documentToItemStack(potionDoc));
+                }
+
+                PlayerData playerData = new PlayerData(uuid, woodRepo, stoneRepo, moneyRepo, new BuildingManager(uuid), upgradeLevels, upgradedItems, villageLevelConfig);
+                playerData.getPurchasedFood().addAll(purchasedFood);
+                playerData.getPurchasedPotions().addAll(purchasedPotions);
+
+                return playerData;
             } else {
                 return new PlayerData(uuid);
             }

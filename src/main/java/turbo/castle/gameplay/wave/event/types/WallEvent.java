@@ -57,18 +57,18 @@ public class WallEvent extends WaveEvent {
     }
 
     private void buildWall(Location baseLocation) {
-        World world = baseLocation.getWorld();
-        for (int i = 1; i < 10; i++) {
-            Block block = world.getBlockAt(baseLocation.getBlockX(), baseLocation.getBlockY() + i, baseLocation.getBlockZ());
-            block.setType(Material.STONE);
-        }
+        modifyWall(baseLocation, Material.STONE);
     }
 
     private void removeWall(Location baseLocation) {
+        modifyWall(baseLocation, Material.AIR);
+    }
+
+    private void modifyWall(Location baseLocation, Material material) {
         World world = baseLocation.getWorld();
         for (int i = 1; i < 10; i++) {
             Block block = world.getBlockAt(baseLocation.getBlockX(), baseLocation.getBlockY() + i, baseLocation.getBlockZ());
-            block.setType(Material.AIR);
+            block.setType(material);
         }
     }
 }

@@ -33,3 +33,15 @@ commands:
   stonePVE:
     description: farm stone
     usage: /<command>
+  spawnStone:
+    description: spawn stone
+    usage: /<command>
+  money:
+    description: money info
+    usage: /<command>
+  wagon:
+    description: spawn Wagon
+    usage: /<command>
+  camp:
+    description: spawn Camp
+    usage: /<command>

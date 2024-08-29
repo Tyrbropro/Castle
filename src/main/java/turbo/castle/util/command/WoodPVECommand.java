@@ -45,7 +45,7 @@ public class WoodPVECommand implements CommandExecutor {
         } else {
             int multiplier = building.getUpgradeLevels().get("axe") + 1;
             PlayerData data = PlayerData.getUsers().get(player.getUniqueId());
-            data.setMultiplierWood(multiplier);
+            data.setMultiplierWood(multiplier + 1);
             player.getInventory().addItem(building.getAxe());
         }
     }

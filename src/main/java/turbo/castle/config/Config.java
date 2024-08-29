@@ -167,4 +167,24 @@ public class Config {
     public WoodPVECommand woodPVECommand() {
         return new WoodPVECommand();
     }
+
+    @Bean
+    public SpawnStoneCommand spawnStoneCommand() {
+        return new SpawnStoneCommand(spawnStone());
+    }
+
+    @Bean
+    public MoneyInfoCommand moneyInfoCommand() {
+        return new MoneyInfoCommand();
+    }
+
+    @Bean
+    public SpawnWagonCommand wagonCommand() {
+        return new SpawnWagonCommand();
+    }
+
+    @Bean
+    public SpawnCampCommand spawnCampCommand() {
+        return new SpawnCampCommand();
+    }
 }

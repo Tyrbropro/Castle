@@ -9,8 +9,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import turbo.castle.currency.wood.repository.WoodRepositoryImpl;
 import turbo.castle.data.PlayerData;
 import turbo.castle.gameplay.wave.SpawnWave;
 import turbo.castle.util.MapService;
@@ -20,8 +20,9 @@ import java.util.UUID;
 @Component
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class PlayerDamageEvents implements Listener {
-    private final SpawnWave spawnWave; // Зависимость от SpawnWave
+    SpawnWave spawnWave;
 
+    @Autowired
     public PlayerDamageEvents(SpawnWave spawnWave) {
         this.spawnWave = spawnWave;
     }
@@ -31,13 +32,10 @@ public class PlayerDamageEvents implements Listener {
         event.setDroppedExp(0);
 
         LivingEntity death = event.getEntity();
-        if (death.getKiller() != null) {
-            Player player = death.getKiller();
-            UUID uuid = player.getUniqueId();
-            PlayerData data = PlayerData.getUsers().get(uuid);
-
-            WoodRepositoryImpl woodRepository = data.getWoodRepository();
-            woodRepository.addWood(50);
+        Player killer = death.getKiller();
+        if (killer != null) {
+            PlayerData data = PlayerData.getUsers().get(killer.getUniqueId());
+            data.getWoodRepository().addWood(50);
         }
     }
 
@@ -45,6 +43,7 @@ public class PlayerDamageEvents implements Listener {
     public void onPlayerDeath(PlayerDeathEvent event) {
         Player player = event.getEntity();
         player.getInventory().clear();
+        if (spawnWave == null) return;
         spawnWave.endGame();
         player.teleport(new Location(MapService.getWorld(), -77.5, 64, 420.5));
         player.sendMessage("Конец игры! Вы погибли.");

@@ -45,7 +45,7 @@ public class StonePVECommand implements CommandExecutor {
         } else {
             int multiplier = building.getUpgradeLevels().get("pickaxe") + 1;
             PlayerData data = PlayerData.getUsers().get(player.getUniqueId());
-            data.setMultiplierStone(multiplier);
+            data.setMultiplierStone(multiplier + 1);
             player.getInventory().addItem(building.getPickaxe());
         }
     }

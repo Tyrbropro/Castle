@@ -2,6 +2,7 @@ package turbo.castle.gameplay.village.types;
 
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
+import org.bson.Document;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -33,7 +34,8 @@ public class TownHall extends AbstractBuilding {
         super("Town Hall",
                 new Location(MapService.getWorld(), -74, 64, 424),
                 500,
-                500);
+                500,
+                0);
         buildingManager.addBuilding(this);
         this.blackSmith = blackSmith;
         this.storage = storage;
@@ -90,7 +92,7 @@ public class TownHall extends AbstractBuilding {
         ItemStack infoItem = new ItemStack(Material.PAPER);
         ItemMeta infoMeta = infoItem.getItemMeta();
         infoMeta.setDisplayName("Информация");
-        infoMeta.setLore(Collections.singletonList(info()));
+        infoMeta.setLore(info());
         infoItem.setItemMeta(infoMeta);
         townHallInventory.setItem(0, infoItem);
 
